@@ -1,7 +1,34 @@
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-// TODO
+:root {
+    --hightlight: #FF57B2;
+    --heading: #F8F8F8;
+    --background: #1A1D23;
+    --info: #BBBBBB;
+    --body: #D7D7D7;
+}
+
+body {
+    background: var(--background)
+}
+
+button {
+    cursor: pointer;
+}
+
+body,
+input,
+textarea,
+select,
+button {
+    font: 400 1rem "Roboto", sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
