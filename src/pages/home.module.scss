@@ -1,1 +1,41 @@
-// TODO
+.container {
+    max-width: 1120px;
+    margin: 0 auto;
+    margin-top: 5rem;
+    button {
+        background: none;
+        border: none;
+        color: var(--hightlight);
+        margin: 4rem auto 0;
+        font-weight: 600;
+    }
+}
+
+.posts {
+    margin: 5rem auto 0;
+    color: var(--heading);
+    strong {
+        font-weight: bold;
+        font-size: 1.75rem;
+        &:hover {
+            color: var(--hightlight)
+        }
+    }
+    p {
+        margin-top: 0.5rem;
+        font-size: 1.125rem;
+        color: var(--body)
+    }
+}
+
+.info {
+    display: flex;
+    margin-top: 1.5rem;
+    time {
+        margin-right: 1.5rem;
+        margin-left: 0.5rem;
+    }
+    span {
+        margin-left: 0.5rem;
+    }
+}
