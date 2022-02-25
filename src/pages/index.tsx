@@ -1,4 +1,4 @@
-import { GetStaticProps } from 'next';
+import { GetStaticPaths, GetStaticProps } from 'next';
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -14,6 +14,8 @@ import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { useEffect, useState } from 'react';
+import Post from './post/[slug]';
 
 interface Post {
   uid?: string;
@@ -34,7 +36,24 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPaginatione }: HomeProps) {
+export default function Home({ postsPagination }: HomeProps) {
+  const [posts, setPost] = useState<Post[]>(postsPagination.results)
+  const [next_page, setNextPage] = useState(postsPagination.next_page)
+
+
+  async function loadMorePostsButton(endpoint) {
+    const res = await fetch(endpoint)
+    const post = await res.json()
+    let newPosts = [...posts]
+    newPosts.push(post.results[0])
+    setPost(newPosts)
+    setNextPage(post.next_page)
+  }
+
+  useEffect(() => {
+    loadMorePostsButton
+  },[posts])
+
   return (
     <>
       <Head>
@@ -42,21 +61,21 @@ export default function Home({ postsPaginatione }: HomeProps) {
           Home - spacetraveling
         </title>
       </Head>
-      <main className={styles.container}>
-        <section>
+      <main className={commonStyles.media}>
+        <section className={styles.container}>
           <img
             src="/images/Logo.svg"
             alt="logo"
 
           />
-          {postsPaginatione.results.map(post => (
-            <Link href={`post/${post.uid}`}>
+          {posts.map(post => (
+            <Link key={post.uid} href={`post/${post.uid}`}>
               <a href="#">
                 <div className={styles.posts}>
                   <strong>{post.data.title}</strong>
                   <p>{post.data.subtitle}</p>
                   <div className={styles.info}>
-                    <FiCalendar /><time>{post.first_publication_date}</time>
+                    <FiCalendar /><time>{format(new Date(post.first_publication_date), "dd MMM yyyy", { locale: ptBR })}</time>
                     <FiUser /><span>{post.data.author}</span>
                   </div>
                 </div>
@@ -64,8 +83,11 @@ export default function Home({ postsPaginatione }: HomeProps) {
             </Link>
           ))}
 
-          {postsPaginatione.next_page !== null && (
-            <button>Carregar mais posts</button>
+          {next_page !== null && (
+            <button onClick={() => loadMorePostsButton(postsPagination.next_page)}>
+              Carregar mais posts
+            </button>
+
           )}
         </section>
       </main>
@@ -73,20 +95,19 @@ export default function Home({ postsPaginatione }: HomeProps) {
   )
 }
 
-export const getStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
-
   const postsResponse = await prismic.query([
     Prismic.predicates.at('document.type', 'posts')
   ], {
     fetch: [],
-    pageSize: 2
+    pageSize: 1
   });
 
   const results = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(new Date(post.last_publication_date),"dd MMM yyyy", { locale: ptBR }),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -97,13 +118,14 @@ export const getStaticProps = async () => {
 
   const next_page = postsResponse.next_page
 
-  const postsPaginatione = {
+  const postsPagination = {
     next_page,
     results
   }
 
   return {
-    props: { postsPaginatione }
+    props: { postsPagination }
   }
 
 };
+
