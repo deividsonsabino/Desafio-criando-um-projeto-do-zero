@@ -1,0 +1,43 @@
+
+import { useEffect, useState } from "react";
+
+export function useScript({url, theme, issueTerm, repo, ref, label}) {
+
+    const [status, setStatus] = useState(url ? "loading" : "idle");
+
+    useEffect(() => {
+        if (!url) {
+            setStatus("idle");
+            return;
+        }
+
+        let script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.crossOrigin = "anonymous";
+        script.setAttribute("theme", theme);
+        script.setAttribute("issue-term", issueTerm);
+        script.setAttribute("repo", repo);
+        script.setAttribute("label", label);
+
+        ref.current.appendChild(script);
+
+        const setAttributeStatus = (event) => {
+            setStatus(event.type === "load" ? "ready" : "error");
+
+        };
+
+        script.addEventListener("load", setAttributeStatus);
+        script.addEventListener("error", setAttributeStatus);
+
+        return () => {
+            if (script) {
+                script.removeEventListener("load", setAttributeStatus);
+                script.removeEventListener("error", setAttributeStatus);
+            }
+        };
+
+    }, [url]);
+    return status;
+};
+
