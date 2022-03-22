@@ -20,6 +20,7 @@ import Link from 'next/link';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -50,7 +51,7 @@ interface PostNavigation {
 }
 
 export default function Post({ post, preview, next, previous }: PostProps) {
-
+  console.log("post", post)
   function countText() {
     let words = []
     words.push(post.data.title)
@@ -83,6 +84,11 @@ export default function Post({ post, preview, next, previous }: PostProps) {
                   <FiCalendar /><time>{format(new Date(post.first_publication_date), "dd MMM yyyy", { locale: ptBR })}</time>
                   <FiUser /><span>{post.data.author}</span>
                   <FiClock /><span>{countText()} min</span>
+                </div>
+                <div className={styles.edit}>
+                  {post.last_publication_date && (
+                    <time> * editado em {format(new Date(post.first_publication_date), "PPPp", { locale: ptBR })}</time>)
+                  }
                 </div>
                 <div>
                   {post.data.content.map(content => (
@@ -173,6 +179,7 @@ export const getStaticProps: GetStaticProps = async ({ params, preview = false, 
         content: response.data.content
       },
       first_publication_date: response.first_publication_date,
+      last_publication_date: response.last_publication_date,
       uid: response.uid,
     }
 
