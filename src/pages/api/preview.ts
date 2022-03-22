@@ -1,4 +1,3 @@
-import * as prismicNext from "@prismicio/next";
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getPrismicClient } from "../../services/prismic";
 

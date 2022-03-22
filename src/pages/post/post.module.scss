@@ -64,3 +64,15 @@
         filter: brightness(0.8);
     }
 }
+
+.postNavigation {
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    color: var(--hightlight);
+    justify-content: space-between;
+    p {
+        margin: 0.5rem auto;
+        color: white;
+    }
+}
