@@ -53,3 +53,14 @@
         color: var(--body)
     }
 }
+
+.preview {
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    &:hover {
+        filter: brightness(0.8);
+    }
+}

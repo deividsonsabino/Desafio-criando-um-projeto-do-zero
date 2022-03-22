@@ -16,6 +16,7 @@ import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import { Comments } from '../../components/Comments';
+import Link from 'next/link';
 
 interface Post {
   first_publication_date: string | null;
@@ -36,10 +37,11 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
 }
 
-export default function Post({ post }: PostProps) {
-  
+export default function Post({ post, preview }: PostProps) {
+
   function countText() {
     let words = []
     words.push(post.data.title)
@@ -48,7 +50,7 @@ export default function Post({ post }: PostProps) {
       RichText.asText(item.body).split(' ',).map((text) => {
         words.push(text)
       })
-    
+
     })
     return Math.ceil(Number(words.length / 200))
   }
@@ -85,7 +87,17 @@ export default function Post({ post }: PostProps) {
                 </div>
               </div>
             </article>
-            <Comments />
+            {preview !== true && (
+              <Comments />
+
+            )}
+            {preview && (
+              <aside className={styles.preview}>
+                <Link href="/api/exit-preview">
+                  <a>Sair do modo Preview</a>
+                </Link>
+              </aside>
+            )}
           </section>
         </main>
       </>
@@ -105,12 +117,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps = async ({ params, preview = false, previewData }) => {
   const { slug } = params;
 
   const prismic = getPrismicClient();
 
-  const response = await prismic.getByUID('posts', String(slug), {});
+  const response = await prismic.getByUID('posts', String(slug), {
+    ref: previewData?.ref ?? null
+  });
   const
     post = {
       data: {
@@ -118,7 +132,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         author: response.data.author,
         subtitle: response.data.subtitle,
         banner: {
-          url: response.data.banner.url || null 
+          url: response.data.banner.url || null
         },
         content: response.data.content
       },
@@ -131,6 +145,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post,
+      preview
     },
     redirect: 60 * 30
   }
