@@ -38,19 +38,29 @@ interface Post {
 interface PostProps {
   post: Post;
   preview: boolean;
+  next: PostNavigation;
+  previous: PostNavigation;
 }
 
-export default function Post({ post, preview }: PostProps) {
+interface PostNavigation {
+  data: {
+    title: string
+  };
+  uid: string;
+}
+
+export default function Post({ post, preview, next, previous }: PostProps) {
 
   function countText() {
     let words = []
     words.push(post.data.title)
     post.data.content.map((item) => {
-      words.push(item.heading.split(' ',))
-      RichText.asText(item.body).split(' ',).map((text) => {
-        words.push(text)
-      })
-
+      if (item.heading) {
+        words.push(item.heading.split(' ',))
+        RichText.asText(item.body).split(' ',).map((text) => {
+          words.push(text)
+        })
+      }
     })
     return Math.ceil(Number(words.length / 200))
   }
@@ -86,18 +96,43 @@ export default function Post({ post, preview }: PostProps) {
                   ))}
                 </div>
               </div>
-            </article>
-            {preview !== true && (
-              <Comments />
+              <hr></hr>
+              <div className={styles.postNavigation}>
+                {previous ? (
+                  <>
+                    <div>
+                      <p>{previous.data.title}</p>
+                      <Link href={`/post/${previous.uid}`}>Post Anterior</Link>
+                    </div>
+                    <div>
 
-            )}
-            {preview && (
-              <aside className={styles.preview}>
-                <Link href="/api/exit-preview">
-                  <a>Sair do modo Preview</a>
-                </Link>
-              </aside>
-            )}
+                    </div>
+                  </>
+
+                ) : next && (
+                  <>
+                    <div>
+
+                    </div>
+                    <div>
+                      <p>{next.data.title}</p>
+                      <Link href={`/post/${next.uid}`}>Próximo Post</Link>
+                    </div>
+
+                  </>
+                )}
+              </div>
+              {preview !== true && (
+                <Comments />
+              )}
+              {preview && (
+                <aside className={styles.preview}>
+                  <Link href="/api/exit-preview">
+                    <a>Sair do modo Preview</a>
+                  </Link>
+                </aside>
+              )}
+            </article>
           </section>
         </main>
       </>
@@ -123,8 +158,9 @@ export const getStaticProps: GetStaticProps = async ({ params, preview = false, 
   const prismic = getPrismicClient();
 
   const response = await prismic.getByUID('posts', String(slug), {
-    ref: previewData?.ref ?? null
+    ref: previewData?.ref ?? null,
   });
+
   const
     post = {
       data: {
@@ -140,12 +176,28 @@ export const getStaticProps: GetStaticProps = async ({ params, preview = false, 
       uid: response.uid,
     }
 
+  const previous = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date]',
+    })
 
+  const next = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date desc]',
+    })
 
   return {
     props: {
       post,
-      preview
+      preview,
+      previous: previous.results[0] ?? null,
+      next: next.results[0] ?? null
     },
     redirect: 60 * 30
   }
